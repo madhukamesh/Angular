@@ -8,7 +8,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 env:
@@ -23,6 +23,9 @@ jobs:
       # Step 1: Checkout/download the repository code
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for tags
+          fetch-tags: true # Fetch all tags
 
       - name: print variables
         run: |
@@ -44,7 +47,22 @@ jobs:
             registry: ghcr.io
             username: ${{ github.actor }}
             password: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Get latest Tag
+        id: get_latest_tag
+        shell: bash
+        run: |
+          latest_version=$(git describe --tags --abbrev=0)
+          if [ -z "$latest_version" ]; then
+            echo "No tags found"
+            latest_version="v1"
+            echo "latest_tag=$latest_version" >> $GITHUB_OUTPUT
+          else
+            echo "current tag version is : $latest_version" # v1
+            version_number=$(echo "$latest_version" | awk -F'v' '{print $2}') #1
+            new_version=v$(( version_number + 1 )) # v2
+            echo "latest_tag=$new_version" >> $GITHUB_OUTPUT
+            echo "latest version is : $latest_tag"
+          fi
       # Step 4: Creates tags for docker image
       - name: Extract Docker metadata
         id: meta
@@ -54,6 +72,7 @@ jobs:
             ghcr.io/madhukamesh/pangular
           tags: |
             ${{ github.sha }}
+            ${{ steps.get_latest_tag.outputs.latest_tag }}
             type=ref,event=branch
             type=ref,event=tag
             type=raw,value=latest
@@ -65,3 +84,10 @@ jobs:
           context: ./angular
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+      - name: Push latest tag
+        shell: bash
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]"
+          git tag "${{ steps.get_latest_tag.outputs.latest_tag }}"
+          git push origin "${{ steps.get_latest_tag.outputs.latest_tag }}"
