@@ -71,7 +71,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/madhukamesh/angular
+            ghcr.io/madhukamesh/tangular
           tags: |
             ${{ github.sha }}
             ${{ steps.get_latest_tag.outputs.latest_tag }}
