@@ -24,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for tags
+          fetch-depth: 0  # Fetch all history for tags
           fetch-tags: true # Fetch all tags
 
       - name: print variables
@@ -47,6 +47,7 @@ jobs:
             registry: ghcr.io
             username: ${{ github.actor }}
             password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Get latest Tag
         id: get_latest_tag
         shell: bash
@@ -63,13 +64,14 @@ jobs:
             echo "latest_tag=$new_version" >> $GITHUB_OUTPUT
             echo "latest version is : $latest_tag"
           fi
+
       # Step 4: Creates tags for docker image
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/madhukamesh/pangular
+            ghcr.io/madhukamesh/angular
           tags: |
             ${{ github.sha }}
             ${{ steps.get_latest_tag.outputs.latest_tag }}
@@ -84,6 +86,7 @@ jobs:
           context: ./angular
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          
       - name: Push latest tag
         shell: bash
         run: |
