@@ -104,9 +104,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: gitops
 
-      - name: Replace image tag with yq
+      - name: push latest tag to gitops repo
         shell: bash
         run: |
           cd gitops/k8s
-          yq e '.spec.template.spec.containers[0].image |= sub("v[0-9]+", "${{ steps.get_latest_tag.outputs.latest_tag }}")' -i deploy.yaml
-          echo "Latest image: $(yq e '.spec.template.spec.containers[0].image' deploy.yaml)"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]"
+          git add -A
+          git commit -m "Updating the latest tag to ${{ steps.get_latest_tag.outputs.latest_tag }}"
+          git push
