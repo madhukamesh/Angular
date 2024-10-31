@@ -104,7 +104,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: gitops
 
-      - name: Replace image tag with yq
+      - name: Replace image tag with yq and push
         shell: bash
         run: |
           cd gitops/k8s
