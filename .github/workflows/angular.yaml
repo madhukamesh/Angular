@@ -15,6 +15,7 @@ env:
   COMPANY_NAME: ONEYES
   COUNTRY_NAME: SWEDEN
 
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -86,7 +87,7 @@ jobs:
           context: ./angular
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          
+
       - name: Push latest tag
         shell: bash
         run: |
@@ -94,3 +95,18 @@ jobs:
           git config --global user.email "github-actions[bot]"
           git tag "${{ steps.get_latest_tag.outputs.latest_tag }}"
           git push origin "${{ steps.get_latest_tag.outputs.latest_tag }}"
+
+      - name: checkout gitops repo
+        uses: actions/checkout@v4
+        with:
+          repository: 'madhukamesh/argocd-app-gitops'
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: gitops
+
+      - name: Replace image tag with yq
+        shell: bash
+        run: |
+          cd gitops/k8s
+          yq e '.spec.template.spec.containers[0].image |= sub("v[0-9]+", "${{ steps.get_latest_tag.outputs.latest_tag }}")' -i deploy.yaml
+          echo "Latest image: $(yq e '.spec.template.spec.containers[0].image' deploy.yaml)"
