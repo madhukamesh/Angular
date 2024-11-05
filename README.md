@@ -1,5 +1,5 @@
 ## Compose sample 
-### Angular service
+### Angular service one
 
 Project structure:
 ```
